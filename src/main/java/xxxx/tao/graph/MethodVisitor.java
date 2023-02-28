@@ -45,7 +45,6 @@ public class MethodVisitor implements Visitor {
                 }
             }
         } catch (Exception exception) {
-
         }
     }
 
@@ -56,7 +55,6 @@ public class MethodVisitor implements Visitor {
             if (unit instanceof JAssignStmt) {
                 JAssignStmt jAssignStmt = (JAssignStmt) unit;
                 invokeExpr = (InvokeExpr) jAssignStmt.getRightOpBox().getValue();
-
             } else if (unit instanceof JInvokeStmt) {
                 JInvokeStmt jInvokeStmt = (JInvokeStmt) unit;
                 invokeExpr = jInvokeStmt.getInvokeExpr();

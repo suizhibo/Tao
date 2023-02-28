@@ -70,6 +70,7 @@ public class ClassVisitor implements Visitor{
         Scene.v().setSootClassPath(sootClassPath);
         Options.v().set_process_dir(classPaths);
         Options.v().set_whole_program(true);
+        Options.v().set_keep_line_number(true);
         Options.v().set_app(true);
         scanClass(new File(classPath));
         Scene.v().loadNecessaryClasses();

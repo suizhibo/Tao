@@ -33,6 +33,7 @@ public class Edges {
         if(this.edgeMap.getOrDefault(flag, null) != null){
             return;
         }
+        this.edgeMap.put(flag, edge);
         this.edges.add(edge);
         this.addEdgeByCaller(caller, edge);
         this.addEdgeByCallee(callee, edge);

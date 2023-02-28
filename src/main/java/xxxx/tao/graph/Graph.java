@@ -2,6 +2,7 @@ package xxxx.tao.graph;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Graph {
 
@@ -9,19 +10,16 @@ public class Graph {
     private Callees callees;
     private Callers callers;
     private String sink;
-    private AtomicInteger node;
     private StringBuffer stringBuffer;
 
-    private Map<String, Map<String, String>> nodes = Collections.synchronizedMap(new HashMap<>());
-    private Set<String> links = Collections.synchronizedSet(new HashSet<>());
-
+    Set<String> nodes = Collections.synchronizedSet(new HashSet<>());
+    Set<String> links = Collections.synchronizedSet(new HashSet<>());
 
     public Graph(Edges edges, Callers callers, Callees callees, String sink) {
         this.edges = edges;
         this.callers = callers;
         this.callees = callees;
         this.sink = sink;
-        node = new AtomicInteger(0);
         stringBuffer = new StringBuffer(
                 "digraph CallGraph{\n" +
                         "node [fontsize=\"20\",];\n" +
@@ -31,67 +29,47 @@ public class Graph {
     public void run() {
         Callee callee = this.callees.getCalleeBySignature(this.sink);
         Set<Edge> edgesByCallee = this.edges.getEdgeByCallee(callee);
-        recursion(callee, edgesByCallee);
+        recursion(callee.getSignature(), edgesByCallee);
         drawGraph();
     }
 
-    private void recursion(Callee callee, Set<Edge> edgeSet) {
-        String signature = callee.getSignature();
-        Map<String, String> tempNode = nodes.getOrDefault(signature, null);
-        String parentNode;
-        if (tempNode == null) {
-            parentNode = String.valueOf(node.get());
-            String temp = String.format(" %s[label=\"%s:%s\", shape=\"box\"];\n",
-                    parentNode, parentNode, signature);
-            tempNode = new HashMap<>();
-            tempNode.put("label", temp);
-            tempNode.put("num", parentNode);
-            nodes.put(signature, tempNode);
-        } else {
-            parentNode = (String) tempNode.get("num");
-        }
+    private void recursion(String parentSignature, Set<Edge> edgeSet){
+        nodes.add(parentSignature);
         edgeSet.forEach(edge -> {
-            try {
-                Caller caller = edge.getCaller();
-                String signatureTemp = caller.getSignature();
-                Map<String, String> tempNode1 = nodes.getOrDefault(signatureTemp, null);
-                String currentNum;
-                if (tempNode1 == null) {
-                    currentNum = String.valueOf(node.incrementAndGet());
-                    String temp = String.format(" %d[label=\"%d:%s\", shape=\"box\"];\n", node.get(), node.get(), signature);
-                    tempNode1 = new HashMap<>();
-                    tempNode1.put("label", temp);
-                    tempNode1.put("num", String.valueOf(node.get()));
-                    nodes.put(signatureTemp, tempNode1);
-                }else{
-                    currentNum = (String) tempNode1.get("num");}
-                links.add(String.format(" %s -> %s [label=\"%s\"];\n", currentNum, parentNode, edge.getCallerType().toString()));
-                Callee tempCallee = this.callees.getCalleeBySignature(signatureTemp);
-                if (tempCallee != null) {
-                    Set<Edge> temp = this.edges.getEdgeByCallee(tempCallee);
-                    recursion(tempCallee, temp);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            Caller caller = edge.getCaller();
+            String currentSignature = caller.getSignature();
+            nodes.add(currentSignature);
+            links.add(String.format(" %s @ %s @ %s (%d)", currentSignature, parentSignature, edge.getCallerType().toString(), caller.getCallerLineNumber()));
+            Callee tempCallee = this.callees.getCalleeBySignature(currentSignature);
+            if (tempCallee != null) {
+                Set<Edge> temp = this.edges.getEdgeByCallee(tempCallee);
+                recursion(tempCallee.getSignature(), temp);
             }
-
         });
     }
 
     private void drawGraph() {
-        nodes.forEach((key, values) -> {
-            Map<String, String> entry = values;
-            entry.forEach((k, v) -> {
-                if (k.equals("label")) {
-                    stringBuffer.append(v);
-                }
-            });
-        });
-        links.forEach(link -> {
-            stringBuffer.append(link);
-        });
+        System.out.println("_______________________________________________");
+        System.out.println("Sink: " + this.sink);
+        System.out.println();
+        Map<String, String> nodeNum = new HashMap<>();
+        int num = 0;
+        for (String node:
+             nodes) {
+            nodeNum.put(node, String.valueOf(num));
+            stringBuffer.append(String.format(" %d[label=\"%s\", shape=\"box\"];\n", num, node));
+            num ++;
+        }
+        for (String link:
+             links) {
+            String[] links = link.split("@");
+            String parent = links[0].trim();
+            String child = links[1].trim();
+            String label = links[2].trim();
+            stringBuffer.append(String.format(" %s -> %s [label=\"%s\"];\n", nodeNum.get(parent), nodeNum.get(child), label));
+        }
         stringBuffer.append("}");
         System.out.println(stringBuffer.toString());
-
+        System.out.println("_______________________________________________");
     }
 }

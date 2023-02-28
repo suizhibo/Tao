@@ -21,7 +21,15 @@ public class Engine {
     }
 
     public static void main(String[] args) {
-        System.out.println("");
+        System.out.println("\n" +
+                " ___________        __          ______    \n" +
+                "(\"     _   \")      /\"\"\\        /    \" \\   \n" +
+                " )__/  \\\\__/      /    \\      // ____  \\  \n" +
+                "    \\\\_ /        /' /\\  \\    /  /    ) :) \n" +
+                "    |.  |       //  __'  \\  (: (____/ //  \n" +
+                "    \\:  |      /   /  \\\\  \\  \\        /   \n" +
+                "     \\__|     (___/    \\___)  \\\"_____/    \n" +
+                "                                          \n");
         Engine engine = new Engine();
         engine.run(args);
     }
