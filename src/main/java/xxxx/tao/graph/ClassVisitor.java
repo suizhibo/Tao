@@ -44,16 +44,22 @@ public class ClassVisitor implements Visitor{
     }
 
     private void buildSootClass(){
-        for (String classFilePath:
-                classFilePaths) {
-            String path = classFilePath.substring(this.tempClassPathLength);
-            String newPath = path.substring(1, path.lastIndexOf("."));
-            newPath = newPath.replace("\\", ".");
-            SootClass sootClass = Scene.v().loadClassAndSupport(newPath);
-            if(!sootClass.isJavaLibraryClass()){
+        for (SootClass sootClass:
+             Scene.v().getClasses()) {
+            if(sootClass.isApplicationClass()){
                 sootClassSet.add(sootClass);
             }
         }
+//        for (String classFilePath:
+//                classFilePaths) {
+//            String path = classFilePath.substring(this.tempClassPathLength);
+//            String newPath = path.substring(1, path.lastIndexOf("."));
+//            newPath = newPath.replace("\\", ".");
+//            SootClass sootClass = Scene.v().loadClassAndSupport(newPath);
+//            if(!sootClass.isJavaLibraryClass()){
+//                sootClassSet.add(sootClass);
+//            }
+//        }
 
     }
 
@@ -62,14 +68,14 @@ public class ClassVisitor implements Visitor{
         List<String> classPaths = new ArrayList<>();
         this.tempClassPathLength = classPath.length();
         classPaths.add(classPath);
-        libs.add(""); // add lib path
+//        libs.add(""); // add lib path
         libs.add(JRE_DIR);
         excludeJDKLibrary();
         String sootClassPath = String.join(File.pathSeparator, classPaths) + File.pathSeparator +
                 String.join(File.pathSeparator, libs);
         Scene.v().setSootClassPath(sootClassPath);
         Options.v().set_process_dir(classPaths);
-        Options.v().set_whole_program(true);
+//        Options.v().set_whole_program(true);
         Options.v().set_keep_line_number(true);
         Options.v().set_app(true);
         scanClass(new File(classPath));
@@ -110,6 +116,6 @@ public class ClassVisitor implements Visitor{
 
     @Override
     public void run() {
-    loadClass();
+        loadClass();
     }
 }

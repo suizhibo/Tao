@@ -11,7 +11,6 @@ import java.util.List;
 
 public class MethodVisitor implements Visitor {
     private SootClass sootClass;
-    private Hierarchy hierarchy;
 
     private Edges edges = new Edges();
     private Callees callees = new Callees();
@@ -23,7 +22,6 @@ public class MethodVisitor implements Visitor {
         this.edges = edges;
         this.callers = callers;
         this.callees = callees;
-        this.hierarchy = Scene.v().getActiveHierarchy();
     }
 
     @Override
@@ -76,21 +74,43 @@ public class MethodVisitor implements Visitor {
     private void resolve(InvokeExpr invokeExpr, Caller caller) {
         SootMethodRef sootMethodRef = invokeExpr.getMethodRef();
         if (invokeExpr instanceof JStaticInvokeExpr) {
-            Callee callee = this.callees.getCalleeBySignature(sootMethodRef.getSignature());
-            if (callee == null) {
-                callee = new Callee(sootMethodRef.getDeclaringClass(), sootMethodRef.resolve(),
-                        sootMethodRef.getSignature(), sootMethodRef.resolve().getJavaSourceStartLineNumber());
+            // support lambda
+            if(sootMethodRef.getDeclaringClass().toString().contains("$lambda") && sootMethodRef.getName().equals("bootstrap$")){
+                SootClass deClass = sootMethodRef.getDeclaringClass();
+                deClass.getMethods().forEach(sm->{
+                    String methodName = sm.getName();
+                    if(!methodName.equals("bootstrap$") && !methodName.equals("<init>")) {
+                        Callee callee = this.callees.getCalleeBySignature(sm.getSignature());
+                        if (callee == null) {
+                            callee = new Callee(deClass, sm, sm.getSignature(), sm.getJavaSourceStartLineNumber());
+                        }
+                        Edge edge = this.edges.getEdgeByCallerAndCallee(caller, callee, InvokeType.Static);
+                        if (edge == null) {
+                            edge = new Edge(InvokeType.Static, caller, callee);
+                        }
+                        this.callees.addCallee(callee);
+                        this.edges.addEdge(edge);
+                        new MethodVisitor(deClass, this.edges, this.callers, this.callees).run();
+                    }
+                });
+            }else{
+                Callee callee = this.callees.getCalleeBySignature(sootMethodRef.getSignature());
+                if (callee == null) {
+                    callee = new Callee(sootMethodRef.getDeclaringClass(), sootMethodRef.resolve(),
+                            sootMethodRef.getSignature(), sootMethodRef.resolve().getJavaSourceStartLineNumber());
+                }
+                Edge edge = this.edges.getEdgeByCallerAndCallee(caller, callee, InvokeType.Static);
+                if (edge == null) {
+                    edge = new Edge(InvokeType.Static, caller, callee);
+                }
+                this.callees.addCallee(callee);
+                this.edges.addEdge(edge);
             }
-            Edge edge = this.edges.getEdgeByCallerAndCallee(caller, callee, InvokeType.Static);
-            if (edge == null) {
-                edge = new Edge(InvokeType.Static, caller, callee);
-            }
-            this.callees.addCallee(callee);
-            this.edges.addEdge(edge);
         } else if (invokeExpr instanceof JSpecialInvokeExpr) {
             SootClass declaringClass = sootMethodRef.getDeclaringClass();
             NumberedString subSignature = sootMethodRef.getSubSignature();
             SootMethod calleeMethod = dispatch(declaringClass, subSignature);
+            if(calleeMethod == null) return;
             Callee callee = this.callees.getCalleeBySignature(calleeMethod.getSignature());
             if (callee == null) {
                 callee = new Callee(calleeMethod.getDeclaringClass(), calleeMethod,
@@ -105,11 +125,12 @@ public class MethodVisitor implements Visitor {
         } else if (invokeExpr instanceof JVirtualInvokeExpr) {
             SootClass declaringClass = sootMethodRef.getDeclaringClass();
             NumberedString subSignature = sootMethodRef.getSubSignature();
-            List<SootClass> subClasses = this.hierarchy.getSubclassesOf(declaringClass);
+            List<SootClass> subClasses = Scene.v().getActiveHierarchy().getSubclassesOf(declaringClass);
 //            subClasses.add(declaringClass);
             for (SootClass clazz :
                     subClasses) {
                 SootMethod calleeMethod = dispatch(clazz, subSignature);
+                if(calleeMethod == null) continue;
                 Callee callee = this.callees.getCalleeBySignature(calleeMethod.getSignature());
                 if (callee == null) {
                     callee = new Callee(calleeMethod.getDeclaringClass(), calleeMethod,
@@ -125,10 +146,11 @@ public class MethodVisitor implements Visitor {
         } else if (invokeExpr instanceof JInterfaceInvokeExpr) {
             SootClass declaringClass = sootMethodRef.getDeclaringClass();
             NumberedString subSignature = sootMethodRef.getSubSignature();
-            List<SootClass> subClasses = this.hierarchy.getImplementersOf(declaringClass);
+            List<SootClass> subClasses = Scene.v().getActiveHierarchy().getImplementersOf(declaringClass);
             for (SootClass clazz :
                     subClasses) {
                 SootMethod calleeMethod = dispatch(clazz, subSignature);
+                if(calleeMethod == null) continue;
                 Callee callee = this.callees.getCalleeBySignature(calleeMethod.getSignature());
                 if (callee == null) {
                     callee = new Callee(calleeMethod.getDeclaringClass(), calleeMethod,
@@ -156,7 +178,7 @@ public class MethodVisitor implements Visitor {
             if (!sootMethod.isAbstract()) {
                 return sootMethod;
             }
-            SootClass superClass = this.hierarchy.getSuperclassesOf(sootClass).get(0);
+            SootClass superClass = Scene.v().getActiveHierarchy().getSuperclassesOf(sootClass).get(0);
             return dispatch(superClass, subSignature);
         } catch (Exception exception) {
 
