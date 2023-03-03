@@ -174,12 +174,17 @@ public class MethodVisitor implements Visitor {
             return null;
         }
         try {
-            SootMethod sootMethod = sootClass.getMethod(subSignature);
-            if (!sootMethod.isAbstract()) {
+            SootMethod sootMethod = null;
+            try {
+                sootMethod = sootClass.getMethod(subSignature);
+            }catch (RuntimeException runtimeException){
+
+            }
+            if (sootMethod != null && !sootMethod.isAbstract()) {
                 return sootMethod;
             }
-            SootClass superClass = Scene.v().getActiveHierarchy().getSuperclassesOf(sootClass).get(0);
-            return dispatch(superClass, subSignature);
+            SootClass directSuperClass = Scene.v().getActiveHierarchy().getSuperclassesOf(sootClass).get(0); // Direct
+            return dispatch(directSuperClass, subSignature);
         } catch (Exception exception) {
 
         }
