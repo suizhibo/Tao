@@ -73,6 +73,8 @@ public class MethodVisitor implements Visitor {
 
     private void resolve(InvokeExpr invokeExpr, Caller caller) {
         SootMethodRef sootMethodRef = invokeExpr.getMethodRef();
+        SootClass declaringClass = sootMethodRef.getDeclaringClass();
+        NumberedString subSignature = sootMethodRef.getSubSignature();
         if (invokeExpr instanceof JStaticInvokeExpr) {
             // support lambda
             if(sootMethodRef.getDeclaringClass().toString().contains("$lambda") && sootMethodRef.getName().equals("bootstrap$")){
@@ -107,8 +109,6 @@ public class MethodVisitor implements Visitor {
                 this.edges.addEdge(edge);
             }
         } else if (invokeExpr instanceof JSpecialInvokeExpr) {
-            SootClass declaringClass = sootMethodRef.getDeclaringClass();
-            NumberedString subSignature = sootMethodRef.getSubSignature();
             SootMethod calleeMethod = dispatch(declaringClass, subSignature);
             if(calleeMethod == null) return;
             Callee callee = this.callees.getCalleeBySignature(calleeMethod.getSignature());
@@ -123,8 +123,6 @@ public class MethodVisitor implements Visitor {
             }
             this.edges.addEdge(edge);
         } else if (invokeExpr instanceof JVirtualInvokeExpr) {
-            SootClass declaringClass = sootMethodRef.getDeclaringClass();
-            NumberedString subSignature = sootMethodRef.getSubSignature();
             List<SootClass> subClasses = Scene.v().getActiveHierarchy().getSubclassesOf(declaringClass);
 //            subClasses.add(declaringClass);
             for (SootClass clazz :
@@ -144,8 +142,6 @@ public class MethodVisitor implements Visitor {
                 this.edges.addEdge(edge);
             }
         } else if (invokeExpr instanceof JInterfaceInvokeExpr) {
-            SootClass declaringClass = sootMethodRef.getDeclaringClass();
-            NumberedString subSignature = sootMethodRef.getSubSignature();
             List<SootClass> subClasses = Scene.v().getActiveHierarchy().getImplementersOf(declaringClass);
             for (SootClass clazz :
                     subClasses) {
