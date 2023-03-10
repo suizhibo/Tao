@@ -42,7 +42,8 @@ public class Engine {
         try {
             String sinksPath = command.getSinksPath();
             sinks = (Sinks) YamlUtil.readYaml(sinksPath, Sinks.class);
-        }catch (Exception e){}
+        } catch (Exception e) {
+        }
     }
 
     private void run(String[] args) {
@@ -65,8 +66,12 @@ public class Engine {
             System.out.println("Callee Num: " + callees.getNum());
             sinks.getSinks().forEach((component, sinks) -> {
                 sinks.forEach(s -> {
-                    Graph graph = new Graph(edges, callers, callees, s);
-                    graph.run();
+                    try {
+                        Graph graph = new Graph(edges, callers, callees, s);
+                        graph.run();
+                    } catch (Exception e) {
+
+                    }
                 });
             });
             final long analysisDurationSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - analysisStart);
