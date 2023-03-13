@@ -67,7 +67,7 @@ public class Engine {
             sinks.getSinks().forEach((component, sinks) -> {
                 sinks.forEach(s -> {
                     try {
-                        Graph graph = new Graph(edges, callers, callees, s);
+                        Graph graph = new Graph(edges, callers, callees, s, component);
                         graph.run();
                     } catch (Exception e) {
 

@@ -10,16 +10,18 @@ public class Graph {
     private Callees callees;
     private Callers callers;
     private String sink;
+    private String vul;
     private StringBuffer stringBuffer;
 
     Set<String> nodes = Collections.synchronizedSet(new HashSet<>());
     Set<String> links = Collections.synchronizedSet(new HashSet<>());
 
-    public Graph(Edges edges, Callers callers, Callees callees, String sink) {
+    public Graph(Edges edges, Callers callers, Callees callees, String sink, String vul) {
         this.edges = edges;
         this.callers = callers;
         this.callees = callees;
         this.sink = sink;
+        this.vul = vul;
         stringBuffer = new StringBuffer(
                 "digraph CallGraph{\n" +
                         "node [fontsize=\"20\",];\n" +
@@ -50,7 +52,7 @@ public class Graph {
 
     private void drawGraph() {
         System.out.println("_______________________________________________");
-        System.out.println("Sink: " + this.sink);
+        System.out.println(String.format("Vul: %s\nSink: %s", this.vul, this.sink));
         System.out.println();
         Map<String, String> nodeNum = new HashMap<>();
         int num = 0;
