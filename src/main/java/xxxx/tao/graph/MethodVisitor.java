@@ -6,16 +6,14 @@ import soot.jimple.JimpleBody;
 import soot.jimple.internal.*;
 import soot.util.NumberedString;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class MethodVisitor implements Visitor {
     private SootClass sootClass;
 
-    private Edges edges = new Edges();
-    private Callees callees = new Callees();
-    private Callers callers = new Callers();
+    private Edges edges;
+    private Callees callees;
+    private Callers callers;
 
 
     public MethodVisitor(SootClass sootClass, Edges edges, Callers callers, Callees callees) {
