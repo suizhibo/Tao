@@ -16,6 +16,7 @@ public class ClassVisitor implements Visitor{
     static LinkedList<String> excludeList;
     private List<String> libs = new ArrayList<>();
     private List<String> classFilePaths = new ArrayList<>();
+    private List<String> jarFilePaths = new ArrayList<>();
     private int tempClassPathLength;
     private Command command;
 
@@ -43,23 +44,31 @@ public class ClassVisitor implements Visitor{
         }
     }
 
+    private void scanJar(File file){
+        if (file.isFile()) {
+            String fileName = file.getName();
+            if(fileName.endsWith(".jar")) {
+                String filePath = file.getAbsolutePath();
+                jarFilePaths.add(filePath);
+            }
+        }
+        else if (file.isDirectory()) {
+            for (File f : file.listFiles())
+                scanJar(f);
+        }
+    }
+
     private void buildSootClass(){
-        for (SootClass sootClass:
-             Scene.v().getClasses()) {
-            if(sootClass.isApplicationClass()){
+        for (String classFilePath:
+                classFilePaths) {
+            String path = classFilePath.substring(this.tempClassPathLength);
+            String newPath = path.substring(1, path.lastIndexOf("."));
+            newPath = newPath.replace("\\", ".");
+            SootClass sootClass = Scene.v().loadClassAndSupport(newPath);
+            if(!sootClass.isJavaLibraryClass()){
                 sootClassSet.add(sootClass);
             }
         }
-//        for (String classFilePath:
-//                classFilePaths) {
-//            String path = classFilePath.substring(this.tempClassPathLength);
-//            String newPath = path.substring(1, path.lastIndexOf("."));
-//            newPath = newPath.replace("\\", ".");
-//            SootClass sootClass = Scene.v().loadClassAndSupport(newPath);
-//            if(!sootClass.isJavaLibraryClass()){
-//                sootClassSet.add(sootClass);
-//            }
-//        }
 
     }
 
@@ -67,8 +76,9 @@ public class ClassVisitor implements Visitor{
         String classPath = command.getClassPath();
         List<String> classPaths = new ArrayList<>();
         this.tempClassPathLength = classPath.length();
+        scanJar(new File(command.getLibPath()));
         classPaths.add(classPath);
-//        libs.add(""); // add lib path
+        libs.addAll(jarFilePaths); // add lib path
         libs.add(JRE_DIR);
         excludeJDKLibrary();
         String sootClassPath = String.join(File.pathSeparator, classPaths) + File.pathSeparator +

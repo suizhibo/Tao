@@ -6,6 +6,7 @@ import soot.jimple.JimpleBody;
 import soot.jimple.internal.*;
 import soot.util.NumberedString;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -109,60 +110,41 @@ public class MethodVisitor implements Visitor {
                 this.edges.addEdge(edge);
             }
         } else if (invokeExpr instanceof JSpecialInvokeExpr) {
-            SootMethod calleeMethod = dispatch(declaringClass, subSignature);
-            if(calleeMethod == null) return;
-            Callee callee = this.callees.getCalleeBySignature(calleeMethod.getSignature());
-            if (callee == null) {
-                callee = new Callee(calleeMethod.getDeclaringClass(), calleeMethod,
-                        calleeMethod.getSignature(), calleeMethod.getJavaSourceStartLineNumber());
-            }
-            this.callees.addCallee(callee);
-            Edge edge = this.edges.getEdgeByCallerAndCallee(caller, callee, InvokeType.Special);
-            if (edge == null) {
-                edge = new Edge(InvokeType.Special, caller, callee);
-            }
-            this.edges.addEdge(edge);
+            resolve(caller, declaringClass, subSignature, InvokeType.Special);
         } else if (invokeExpr instanceof JVirtualInvokeExpr) {
             List<SootClass> subClasses = Scene.v().getActiveHierarchy().getSubclassesOf(declaringClass);
-//            subClasses.add(declaringClass);
             for (SootClass clazz :
                     subClasses) {
-                SootMethod calleeMethod = dispatch(clazz, subSignature);
-                if(calleeMethod == null) continue;
-                Callee callee = this.callees.getCalleeBySignature(calleeMethod.getSignature());
-                if (callee == null) {
-                    callee = new Callee(calleeMethod.getDeclaringClass(), calleeMethod,
-                            calleeMethod.getSignature(), calleeMethod.getJavaSourceStartLineNumber());
-                }
-                this.callees.addCallee(callee);
-                Edge edge = this.edges.getEdgeByCallerAndCallee(caller, callee, InvokeType.Virtual);
-                if (edge == null) {
-                    edge = new Edge(InvokeType.Virtual, caller, callee);
-                }
-                this.edges.addEdge(edge);
+                resolve(caller, clazz, subSignature, InvokeType.Virtual);
             }
+            resolve(caller, declaringClass, subSignature, InvokeType.Virtual);
         } else if (invokeExpr instanceof JInterfaceInvokeExpr) {
             List<SootClass> subClasses = Scene.v().getActiveHierarchy().getImplementersOf(declaringClass);
             for (SootClass clazz :
                     subClasses) {
-                SootMethod calleeMethod = dispatch(clazz, subSignature);
-                if(calleeMethod == null) continue;
-                Callee callee = this.callees.getCalleeBySignature(calleeMethod.getSignature());
-                if (callee == null) {
-                    callee = new Callee(calleeMethod.getDeclaringClass(), calleeMethod,
-                            calleeMethod.getSignature(), calleeMethod.getJavaSourceStartLineNumber());
-                }
-                Edge edge = this.edges.getEdgeByCallerAndCallee(caller, callee, InvokeType.Interface);
-                if (edge == null) {
-                    edge = new Edge(InvokeType.Interface, caller, callee);
-                }
-                this.callees.addCallee(callee);
-                this.edges.addEdge(edge);
+                resolve(caller, clazz, subSignature, InvokeType.Interface);
             }
+            resolve(caller, declaringClass, subSignature, InvokeType.Interface);
         } else {
             // TODO: dynamic
         }
 
+    }
+
+    private void resolve(Caller caller, SootClass sootClass, NumberedString subSignature, InvokeType invokeType) {
+        SootMethod calleeMethod = dispatch(sootClass, subSignature);
+        if(calleeMethod == null) return;
+        Callee callee = this.callees.getCalleeBySignature(calleeMethod.getSignature());
+        if (callee == null) {
+            callee = new Callee(calleeMethod.getDeclaringClass(), calleeMethod,
+                    calleeMethod.getSignature(), calleeMethod.getJavaSourceStartLineNumber());
+        }
+        Edge edge = this.edges.getEdgeByCallerAndCallee(caller, callee, invokeType);
+        if (edge == null) {
+            edge = new Edge(invokeType, caller, callee);
+        }
+        this.callees.addCallee(callee);
+        this.edges.addEdge(edge);
     }
 
     private SootMethod dispatch(SootClass sootClass, NumberedString subSignature) {
