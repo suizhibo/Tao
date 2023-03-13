@@ -18,16 +18,6 @@ public class Command {
 
     private String sinksPath;
 
-    public String getProjectPath() {
-        return projectPath;
-    }
-
-    public void setProjectPath(String projectPath) {
-        this.projectPath = projectPath;
-    }
-
-    private String projectPath;
-
     public String getClassPath() {
         return classPath;
     }
@@ -54,16 +44,6 @@ public class Command {
 
     private String outPut;
 
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    private String projectName;
-
     public Command() {
     }
 
@@ -71,8 +51,6 @@ public class Command {
         CommandLineParser parser = new BasicParser();
         Options options = new Options();
         options.addOption("h", "help", false, "打印命令行帮助信息");
-        options.addOption("pn", "project-name", true, "项目名称");
-        options.addOption("pp", "project-path", true, "项目路径");
         options.addOption("cp", "class-path", true, "类文件地址");
         options.addOption("lp", "lib-path", true, "库文件地址");
         options.addOption("sp", "sinks-path", true, "设置sink文件地址");
@@ -95,14 +73,6 @@ public class Command {
 
         if (commandLine.hasOption("sp")) {
             this.setSinksPath(commandLine.getOptionValue("sp"));
-        }
-
-        if (commandLine.hasOption("pn")) {
-            this.setProjectName(commandLine.getOptionValue("pn"));
-        }
-
-        if (commandLine.hasOption("pp")) {
-            this.setProjectPath(commandLine.getOptionValue("pp"));
         }
 
         if (commandLine.hasOption("o")) {
