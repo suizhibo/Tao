@@ -1,0 +1,5 @@
+sinks:
+  FastJSON_default: ["<com.alibaba.fastjson.JSONObject: com.alibaba.fastjson.JSONObject parseObject(java.lang.String)>"]
+  FastJSON_1.2.25: ["<com.alibaba.fastjson.JSONObject: java.lang.Object parse(java.lang.String)>"]
+  XStream: ["<com.thoughtworks.xstream.XStream: java.lang.Object fromXML(java.lang.String)>"]
+  Log4j2: ["<org.apache.logging.log4j.spi.AbstractLogger: void trace(java.lang.String)>", "<org.apache.logging.log4j.spi.AbstractLogger: void fatal(java.lang.String)>", "<org.apache.logging.log4j.spi.AbstractLogger: void debug(java.lang.String)>", "<org.apache.logging.log4j.spi.AbstractLogger: void warn(java.lang.String)>", "<org.apache.logging.log4j.spi.AbstractLogger: void info(java.lang.String)>", "<org.apache.logging.log4j.spi.AbstractLogger: void error(java.lang.String)>"]
