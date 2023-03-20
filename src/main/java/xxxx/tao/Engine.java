@@ -46,7 +46,7 @@ public class Engine {
         }
     }
 
-    private void run(String[] args) {
+    public void run(String[] args) {
         try {
             final long analysisStart = System.currentTimeMillis();
             parseCommand(args);
