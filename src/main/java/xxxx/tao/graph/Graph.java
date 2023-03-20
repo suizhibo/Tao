@@ -99,6 +99,7 @@ public class Graph {
 
         });
         result.put("dot", stringBuffer.toString());
+        result.put("vul", this.vul);
         result.put("entries", entriesSignature);
         JSONObject jsonObject = new JSONObject(result);
         try {
