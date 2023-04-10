@@ -2,6 +2,7 @@ package xxxx.tao.graph;
 
 import soot.Scene;
 import soot.SootClass;
+import soot.SootMethod;
 import soot.options.Options;
 import utils.Command;
 
@@ -58,7 +59,7 @@ public class ClassVisitor implements Visitor{
         }
     }
 
-    private void buildSootClass(){
+    private void buildAllSootClass(){
         for (String classFilePath:
                 classFilePaths) {
             String path = classFilePath.substring(this.tempClassPathLength);
@@ -72,7 +73,18 @@ public class ClassVisitor implements Visitor{
 
     }
 
-    private void loadClass(){
+    private SootClass buildOneSootClass(String classFilePath){
+        String path = classFilePath.substring(this.tempClassPathLength);
+        String newPath = path.substring(1, path.lastIndexOf("."));
+        newPath = newPath.replace("\\", ".");
+        SootClass sootClass = Scene.v().loadClassAndSupport(newPath);
+        if(!sootClass.isJavaLibraryClass()){
+            return sootClass;
+        }
+        return null;
+    }
+
+    private void loadAllClass(){
         String classPath = command.getClassPath();
         List<String> classPaths = new ArrayList<>();
         this.tempClassPathLength = classPath.length();
@@ -89,8 +101,10 @@ public class ClassVisitor implements Visitor{
         Options.v().set_keep_line_number(true);
         Options.v().set_app(true);
         scanClass(new File(classPath));
-        Scene.v().loadNecessaryClasses();
-        buildSootClass();
+//        Scene.v().loadNecessaryClasses();
+        Scene.v().loadBasicClasses();
+        Scene.v().loadDynamicClasses();
+//        buildAllSootClass();
     }
 
     private static LinkedList<String> excludeList()
@@ -126,6 +140,15 @@ public class ClassVisitor implements Visitor{
 
     @Override
     public void run() {
-        loadClass();
+        loadAllClass();
+    }
+
+    public SootClass getSootClassByID(int id){
+        if(id >= classFilePaths.size() || id < 0)return null;
+        return buildOneSootClass(classFilePaths.get(id));
+    }
+
+    public int getClassFileSize(){
+        return classFilePaths.size();
     }
 }
