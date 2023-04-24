@@ -9,11 +9,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Edge {
     private InvokeType callerType;
+    private int callerLineNumber;
     private Caller caller;
     private Callee callee;
 
     public String toString(){
-        return caller.getSignature() + "--" + callerType.toString() + "-->" + callee.getSignature();
+        return caller.getSignature() + "--" + callerType.toString() +  "("+ callerLineNumber+")-->" + callee.getSignature();
     }
 
 }

@@ -16,7 +16,7 @@ public class ClassVisitor implements Visitor{
 
     static LinkedList<String> excludeList;
     private List<String> libs = new ArrayList<>();
-    private List<String> classFilePaths = new ArrayList<>();
+    private List<String> classFilePaths = Collections.synchronizedList(new ArrayList<>());
     private List<String> jarFilePaths = new ArrayList<>();
     private int tempClassPathLength;
     private Command command;
@@ -104,7 +104,7 @@ public class ClassVisitor implements Visitor{
 //        Scene.v().loadNecessaryClasses();
         Scene.v().loadBasicClasses();
         Scene.v().loadDynamicClasses();
-//        buildAllSootClass();
+        buildAllSootClass();
     }
 
     private static LinkedList<String> excludeList()

@@ -35,8 +35,10 @@ public class Edges {
         }
         this.edgeMap.put(flag, edge);
         this.edges.add(edge);
-        this.addEdgeByCaller(caller, edge);
-        this.addEdgeByCallee(callee, edge);
+        synchronized (this){
+            this.addEdgeByCaller(caller, edge);
+            this.addEdgeByCallee(callee, edge);
+        }
     }
 
     public Set<Edge> getEdgeByCaller(Caller caller){
@@ -60,8 +62,10 @@ public class Edges {
     }
 
     public Edge getEdgeByCallerAndCallee(Caller caller, Callee callee, InvokeType invokeType){
-        String flag = caller.getSignature() + callee.getSignature() + invokeType.toString();
-        return this.edgeMap.getOrDefault(flag, null);
+        synchronized (this){
+            String flag = caller.getSignature() + callee.getSignature() + invokeType.toString();
+            return this.edgeMap.getOrDefault(flag, null);
+        }
 
     }
 

@@ -13,5 +13,4 @@ public class Caller {
     private SootClass sootClass;
     private SootMethod sootMethod;
     private String signature;
-    private int callerLineNumber;
 }

@@ -1,10 +1,7 @@
 package xxxx.tao.graph;
 
-import org.codehaus.jettison.json.JSONObject;
 import utils.Utils;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public class Graph {
@@ -36,23 +33,27 @@ public class Graph {
     }
 
     public void run() {
+        int count = 0;
         Callee callee = this.callees.getCalleeBySignature(this.sink);
         Set<Edge> edgesByCallee = this.edges.getEdgeByCallee(callee);
-        recursion(callee.getSignature(), edgesByCallee);
+        recursion(callee.getSignature(), edgesByCallee, count);
         drawGraph();
     }
 
-    private void recursion(String parentSignature, Set<Edge> edgeSet){
+    private void recursion(String parentSignature, Set<Edge> edgeSet, int num){
         nodes.add(parentSignature);
+        if(num > 20) return;
         edgeSet.forEach(edge -> {
             Caller caller = edge.getCaller();
             String currentSignature = caller.getSignature();
             nodes.add(currentSignature);
-            links.add(String.format(" %s @ %s @ %s (%d)", currentSignature, parentSignature, edge.getCallerType().toString(), caller.getCallerLineNumber()));
+            links.add(String.format(" %s @ %s @ %s", currentSignature, parentSignature, edge.getCallerType().toString()));
             Callee tempCallee = this.callees.getCalleeBySignature(currentSignature);
             if (tempCallee != null) {
                 Set<Edge> temp = this.edges.getEdgeByCallee(tempCallee);
-                recursion(tempCallee.getSignature(), temp);
+                if(temp.size() > 0){
+                    recursion(tempCallee.getSignature(), temp, num + 1);
+                }
             }
         });
     }
@@ -90,22 +91,22 @@ public class Graph {
         System.out.println("_______________________________________________");
 
         // 保存结果
-        Map<String, Object> result = new HashMap<>();
-        String filePath = this.outPath + File.separator + this.vul + ".json";
-        entries.removeAll(children);
-        Set<String> entriesSignature = new HashSet<>();
-        entries.forEach(entry ->{
-            entriesSignature.add(numToNode.get(entry));
-
-        });
-        result.put("dot", stringBuffer.toString());
-        result.put("vul", this.vul);
-        result.put("entries", entriesSignature);
-        JSONObject jsonObject = new JSONObject(result);
-        try {
-            Utils.fileWriter(filePath, jsonObject.toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+//        Map<String, Object> result = new HashMap<>();
+//        String filePath = this.outPath + File.separator + this.vul + ".json";
+//        entries.removeAll(children);
+//        Set<String> entriesSignature = new HashSet<>();
+//        entries.forEach(entry ->{
+//            entriesSignature.add(numToNode.get(entry));
+//
+//        });
+//        result.put("dot", stringBuffer.toString());
+//        result.put("vul", this.vul);
+//        result.put("entries", entriesSignature);
+//        JSONObject jsonObject = new JSONObject(result);
+//        try {
+//            Utils.fileWriter(filePath, jsonObject.toString());
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 }

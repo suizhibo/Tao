@@ -69,4 +69,18 @@ public class Utils {
         }
        return "";
     }
+
+    public static void appendFile(String pathname, String content) {
+        try {
+            File writeName = new File(pathname);
+            try (FileWriter writer = new FileWriter(writeName, true);
+                 BufferedWriter out = new BufferedWriter(writer)
+            ) {
+                out.write(content);
+                out.flush();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
