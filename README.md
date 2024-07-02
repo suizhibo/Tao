@@ -78,6 +78,8 @@ digraph CallGraph{
     10 -> 6 [label="Static (77)"];
 }
 ```
+![graphviz](https://github.com/suizhibo/Tao/assets/28916595/7876c9f8-aff6-4c3e-97f3-70f7221ce5a0)
+
 
 # 调用类型
 1. Static
